@@ -385,9 +385,17 @@ RUN goenv global $GOLANG_20_VERSION
 COPY ssh_config /root/.ssh/config
 COPY runtimes.yml /codebuild/image/config/runtimes.yml
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 COPY legal/bill_of_material.txt /usr/share/doc/bill_of_material.txt
 COPY amazon-ssm-agent.json /etc/amazon/ssm/amazon-ssm-agent.json
 
-ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
-
 #=======================END of STD:7.0  =================
+
+# Terraform
+SHELL ["bin/bash", "-o", "pipefail", "-c"]
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+RUN apt update
+RUN apt install terraform
+
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
